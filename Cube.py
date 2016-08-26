@@ -1,6 +1,8 @@
+# a cube class
 import numpy as np
 import os
 import copy
+
 
 debug = False
 class Facelet:
