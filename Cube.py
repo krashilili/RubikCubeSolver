@@ -865,7 +865,7 @@ class Cube:
                    'F':'B','B':'F'}
         return oppFace[self.get_face_location_by_piece(p)]
 
-#add something
+#add something somethng
 def test():
     usercube = {
             'l':['b','o','r','y','g','b','g','b','r'],
