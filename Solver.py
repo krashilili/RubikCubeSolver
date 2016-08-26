@@ -1,7 +1,7 @@
 from Cube import Cube
 import copy
 
-debug = False
+debug = True
 class Algorithm:
     """The algorithm of solving the rubik's cube.
        And it returns a solution.
@@ -101,10 +101,9 @@ class Algorithm:
                 if not _oppositeEdgeAffected(f,e):
                     break
             return True
-        
-        #top cross
-     
-            
+
+
+#---> top cross
         centerPiece = self.cube.get_center_piece('U')
         edgePieces = self._get_edge_pieces_by_color(centerPiece.get_color())
         deadloop = 0
@@ -176,7 +175,6 @@ class Algorithm:
 
 
 
-# 2 --> top layer
 
  #--> top layer
 
@@ -225,6 +223,8 @@ class Algorithm:
         #swap the corner piece which is on the top layer, and one piece member in top center piece's color,
         #but other two pieces are not in the right position
         if debug:
+            print "\n"
+            print self.cube
             print "\n--->"
             print "\t _swap_wrong_top_corner_piece_to_bottom"
             print "\t Piece: ",
@@ -304,6 +304,8 @@ class Algorithm:
         #param `currPiece` is a corner piece on bottom, but it is not on the right corner
         if debug:
             print "\n"
+            print self.cube
+            print "\n"
             print "--->"
             print "\t __bottom_corner_piece_to_right_corner \n",
             print currCornerPiece
@@ -350,6 +352,18 @@ class Algorithm:
                 return False
 
 #---> the top layer
+
+    def _is_top_corner_piece_in_right_places(self, currCornerPiece):
+        """An internal funciton used in _top_layer function to check if
+        the current corner piece is in its right place."""
+       # print currCornerPiece
+        currCPColors = [p.get_color() for p in currCornerPiece]
+        currCPFaceColors = [self.cube.get_center_piece_by_corner_piece(p).get_color() for p in currCornerPiece]
+        if currCPColors == currCPFaceColors:
+            return True
+        else:
+            return False
+
     def _top_layer(self):
         """An internal function in algorithm class. It is to make
             the first layer in the cube done.
@@ -362,7 +376,7 @@ class Algorithm:
         currCornerPieceOnBottom = None
         currCornerPieceOnBottomOneMemberNum = None
         rightPieces = []
-        debugTopLayer = True
+        debugTopLayer = False
 
         while(True):
             cnt +=1 
@@ -376,18 +390,7 @@ class Algorithm:
                 currCornerPieceOnBottom = self.cube.get_corner_piece_by_one_piece_member(\
                     self.cube.get_piece_by_num(currCornerPieceOnBottomOneMemberNum))
                 
-      #      print "%"*32
-      #      print currCornerPieceOnBottom
-      #      print "\n"
-            
-      #      if currCornerPieceOnBottom != None:
-      #          print "curr[0]: ",
-      #          print currCornerPieceOnBottom[0].get_color()
-      #          print "center[0]: ",
-      #          print self.cube.get_center_piece_by_corner_piece(currCornerPieceOnBottom[0]).get_color()
-      #          print "\n"
-      #      print "%"*32
-            
+
             if (currCornerPieceOnBottom != None) and\
                (currCornerPieceOnBottom[0].get_color() == self.cube.get_center_piece_by_corner_piece(currCornerPieceOnBottom[0]).get_color()) and \
                (currCornerPieceOnBottom[1].get_color() == self.cube.get_center_piece_by_corner_piece(currCornerPieceOnBottom[1]).get_color()) and \
@@ -459,82 +462,114 @@ class Algorithm:
                 print "-"*32
                 print "\n\n"
 
-            # working on the corner piece on bottom
-            if currCornerPieceOnBottom != None:
-                for piece in currCornerPieceOnBottom:
-                    if debugTopLayer:
-                        print "Piece : ",
-                        print piece
+            # working on the corner piece on bottom which is not in its right place
+            lpCnt = 0
+            while(True):
+                lpCnt +=1
 
-                    #case 1 and 2
-                    if piece.get_color() == topCrossCenterPiece.get_color() and \
-                       self.cube.get_center_piece_by_corner_piece(piece).get_pos() != (4,7):
-                        pieceX, pieceY = None, None
-                        pieceX = self.cube.get_center_piece_by_corner_piece(piece)
+                if lpCnt >3:
+                    print "!"*32
+                    print "Program flies in _top_layer!!"
+                    print "!"*32
+                    print "\n"
+                    return
 
-                        for p in currCornerPieceOnBottom:
-                            if p.get_color() != pieceX.get_color() and p != piece:
-                                pieceY = self.cube.get_center_piece_by_corner_piece(p)
 
+                #get the currently updated corner piece
+                if currCornerPieceOnBottomOneMemberNum != None:
+                    currCornerPieceOnBottom = self.cube.get_corner_piece_by_one_piece_member( self.cube.get_piece_by_num(currCornerPieceOnBottomOneMemberNum))
+
+                if currCornerPieceOnBottom != None:
+                    # jump out of the loop when the current corner piece is in the right place
+                    if self._is_top_corner_piece_in_right_places(currCornerPieceOnBottom):
                         if debugTopLayer:
-                            print "Case 1 and 2 "
-                            print "pieceX: ",
-                            print pieceX
-                            print "pieceY: ",
-                            print pieceY
+                            print "~"*32
+                            print "\nThe corner piece: \n"
+                            print "\t ",
+                            print currCornerPieceOnBottom
+                            print "It is in the right place!!!"
+                            print "~"*32
+                            print "\n"
+                        break
 
-                        Y = self.cube.get_face_location_by_piece(pieceY)
-                        Y_prime = Y+"'"
-                        if self._is_on_right(pieceX, pieceY):
-                            
-                            # X1(-1) D(-1) X1 D
-                            self._manipulation("D'",1)
-                            self._manipulation(Y_prime,1)
-                            self._manipulation('D',1)
-                            self._manipulation(Y,1)
-                            break
-                        
-                        else:#X0 D X0(-1) D(-1)
-                            self._manipulation('D',1)
-                            self._manipulation(Y,1)
-                            self._manipulation("D'",1)
-                            self._manipulation(Y_prime,1)
-                            break
-                    #case 3 and 4
-                    if piece.get_color() == topCrossCenterPiece.get_color() and \
-                       self.cube.get_center_piece_by_corner_piece(piece).get_pos() == (4,7):
-                        pieceTmp = [p for p in currCornerPieceOnBottom if p != piece]
-                    
-                        print self.cube
-                        pieceX = self.cube.get_center_piece_by_corner_piece(pieceTmp[0])
-                        pieceY = self.cube.get_center_piece_by_corner_piece(pieceTmp[1])
+                    if not self._is_top_corner_piece_in_right_places(currCornerPieceOnBottom):
 
-                        if debugTopLayer:
-                            print "Case 3 and 4 "
-                            print "pieceX: ",
-                            print pieceX
-                            print "pieceY: ",
-                            print pieceY
+                        for piece in currCornerPieceOnBottom:
+                            if debugTopLayer:
+                                print "Piece : ",
+                                print piece
 
-                        if self._is_on_right(pieceX, pieceY):# Y is on the right to X
-                            x = self.cube.get_face_location_by_piece(pieceX)
-                            x_prime = x+"'"
-                            self._manipulation("D",1)
-                            self._manipulation(x,1)
-                            self._manipulation("D'",2)
-                            self._manipulation(x_prime,1)
-                            break
-                        
-                        else: # X is on the right to Y
-                            y = self.cube.get_face_location_by_piece(pieceY)
-                            y_prime = y+"'"
-                            self._manipulation("D",1)
-                            self._manipulation(y,1)
-                            self._manipulation("D'",2)
-                            self._manipulation(y_prime,1)
-                            break
-                            
-                #print self.cube
+                            #case 1 and 2
+                            if piece.get_color() == topCrossCenterPiece.get_color() and \
+                               self.cube.get_center_piece_by_corner_piece(piece).get_pos() != (4,7):
+                                pieceX, pieceY = None, None
+                                pieceX = self.cube.get_center_piece_by_corner_piece(piece)
+
+                                for p in currCornerPieceOnBottom:
+                                    if p.get_color() != pieceX.get_color() and p != piece:
+                                        pieceY = self.cube.get_center_piece_by_corner_piece(p)
+
+                                if debugTopLayer:
+                                    print "Case 1 and 2 "
+                                    print "pieceX: ",
+                                    print pieceX
+                                    print "pieceY: ",
+                                    print pieceY
+
+                                Y = self.cube.get_face_location_by_piece(pieceY)
+                                Y_prime = Y+"'"
+                                if self._is_on_right(pieceX, pieceY):
+
+                                    # X1(-1) D(-1) X1 D
+                                    self._manipulation("D'",1)
+                                    self._manipulation(Y_prime,1)
+                                    self._manipulation('D',1)
+                                    self._manipulation(Y,1)
+                                    break
+
+                                else:#X0 D X0(-1) D(-1)
+                                    self._manipulation('D',1)
+                                    self._manipulation(Y,1)
+                                    self._manipulation("D'",1)
+                                    self._manipulation(Y_prime,1)
+                                    break
+
+                            #case 3 and 4
+                            elif piece.get_color() == topCrossCenterPiece.get_color() and \
+                               self.cube.get_center_piece_by_corner_piece(piece).get_pos() == (4,7):
+                                pieceTmp = [p for p in currCornerPieceOnBottom if p != piece]
+
+                                print self.cube
+                                pieceX = self.cube.get_center_piece_by_corner_piece(pieceTmp[0])
+                                pieceY = self.cube.get_center_piece_by_corner_piece(pieceTmp[1])
+
+                                if debugTopLayer:
+                                    print "Case 3 and 4 "
+                                    print "pieceX: ",
+                                    print pieceX
+                                    print "pieceY: ",
+                                    print pieceY
+
+                                if self._is_on_right(pieceX, pieceY):# Y is on the right to X
+                                    x = self.cube.get_face_location_by_piece(pieceX)
+                                    x_prime = x+"'"
+                                    self._manipulation("D",1)
+                                    self._manipulation(x,1)
+                                    self._manipulation("D'",2)
+                                    self._manipulation(x_prime,1)
+                                    break
+
+                                else: # X is on the right to Y
+                                    y = self.cube.get_face_location_by_piece(pieceY)
+                                    y_prime = y+"'"
+                                    self._manipulation("D",1)
+                                    self._manipulation(y,1)
+                                    self._manipulation("D'",2)
+                                    self._manipulation(y_prime,1)
+                                    break
+
+            if debug:
+                print self.cube
                    
 #--> middle layer
 
@@ -553,11 +588,20 @@ class Algorithm:
         if ep1.get_pos()[0]==0:
             return ep2
 
+    def _is_edge_piece_in_right_place(self, edgePiece):
+        """An internal function used by _mid_layer function to see if it is in the right place."""
+       # print edgePiece
+        epColors = [p.get_color() for p in edgePiece]
+        epFaceColors = [self.cube.get_center_piece_by_edge_piece(ep).get_color() for ep in edgePiece]
+        if epColors == epFaceColors:
+            return True
+        else:
+            return False
 
 #---> solve the second layer
     def _mid_layer(self):
         """Solve the second layer."""
-        debugML = False
+        debugML = True
 
         print "\n"
         print "#" * 32
@@ -578,6 +622,8 @@ class Algorithm:
                     break
 
             edgePiece = None
+            edgePieceOneMemIndx = None
+            #get all edge pieces which should be in the second/middle layer
             midEdgePieces = self.cube.get_edge_pieces_in_middle_layer()
             for midEP in midEdgePieces:
                 if (midEP[0].get_color() == self.cube.get_center_piece_by_edge_piece(midEP[0]).get_color()) and \
@@ -586,128 +632,165 @@ class Algorithm:
                 elif midEP[0].get_color() != self.cube.get_piece_by_location((4,7)).get_color() and \
                         midEP[1].get_color() != self.cube.get_piece_by_location((4,7)).get_color():
                     edgePiece =(midEP[0],midEP[1])
+                    edgePieceOneMemIndx = edgePiece[0].get_num()
                     break
 
             if debugML:
                 print "\n"
-                print "The edgePiece is ",
+                print "-"*32
+                print "Currently working on edge piece: "
+                print "\t ",
                 print edgePiece
-
-            # the edge piece is on the second layer, and the piece is in the right edge but in revised locations
-            if edgePiece[0].get_pos()[1] == 4 and edgePiece[1].get_pos()[1]== 4 and \
-                self.cube.get_center_piece_by_edge_piece(edgePiece[0]).get_color() == self.cube.get_piece_by_num(edgePiece[1].get_num()).get_color():
-
-                if self._is_on_right(edgePiece[0],edgePiece[1]): #edgePiece1 is on the right hand of piece2
-                    rF = self.cube.get_face_location_by_piece(self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[0]))
-                else:
-                    rF = self.cube.get_face_location_by_piece(self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[1]))
-                rF_prime = rF + "'"
-                self._manipulation(rF_prime,1)
-                self._manipulation("D",1)
-                self._manipulation(rF,1)
-                self._manipulation("D'",1)
-                self._manipulation("F",1)
-                self._manipulation("D'",2)
-                self._manipulation("F'",1)
-                self._manipulation("D'",1)
-                self._manipulation("F",1)
-                self._manipulation("D'",2)
-                self._manipulation("F'",1)
-
-            # the edge piece is not in the right edge, has to be moved to bottom first
-            if edgePiece[0].get_pos()[1]==4 and edgePiece[1].get_pos()[1]==4 and \
-                self.cube.get_center_piece_by_edge_piece(edgePiece[0]).get_color() != self.cube.get_piece_by_num(edgePiece[0].get_num()).get_color() and \
-                self.cube.get_center_piece_by_edge_piece(edgePiece[1]).get_color() != self.cube.get_peice_by_num(edgePiece[0].get_num()).get_color():
-                leftPiece = self._get_edge_piece_member_on_left(edgePiece)
-                rightPiece = None
-                for piece in edgePiece:
-                    if piece.get_num() != leftPiece.get_num():
-                        rightPiece = piece
-                        break
-                left = self.cube.get_face_location_by_piece(leftPiece)
-                left_prime = left+"'"
-                f = self.cube.get_face_location_by_piece(rightPiece)
-                f_prime = f+"'"
-                self._manipulation("D",1)
-                self._manipulation(left,1)
-                self._manipulation("D'",1)
-                self._manipulation(left_prime,1)
-                self._manipulation("D'",1)
-                self._manipulation(f_prime,1)
-                self._manipulation("D",1)
-                self._manipulation(f,1)
+                print "-"*32
+                print "\n"
 
 
-            # the edge piece is on the bottom layer
-            if edgePiece[0].get_color() != self.cube.get_piece_by_location((4,7)).get_color() and \
-                    edgePiece[1].get_color() != self.cube.get_piece_by_location((4,7)).get_color():
-                # rotate the edge piece to the right face whose center piece is in the same
-                # color with the edge piece
-                bottomEdgePieceIndex = edgePiece[0].get_num()
-                if debugML:
-                    print "-"*64
-                    print "Currently working on the mid layer edge piece: "
-                    print "\t "
-                    print edgePiece
-                    print "-"*64
+
+            # working on the current edge piece which should be in the second layer
+            loopCnt2 = 0
+            if debugML:
+                print "-" * 64
+                print "Currently working on the mid layer edge piece: "
+                print "\t "
+                print edgePiece
+                print "-" * 64
+                print "\n"
+
+            while(True):
+                loopCnt2 +=1
+                if loopCnt2 > 10:
+                    print "!"*32
+                    print "Program flies in _mid_layer function!!"
+                    print "!"*32
                     print "\n"
+                    return
 
-                loop = 0
-                while(True):
-                    loop +=1
-                    if edgePiece[0].get_color() == \
-                            self.cube.get_center_piece_by_edge_piece(self.cube.get_piece_by_num(bottomEdgePieceIndex)).get_color():
-                        break
-                    if loop >6:
+                #get the latest edge piece
+                edgePiece = self.cube.get_edge_piece_by_one_piece_member(self.cube.get_piece_by_num(edgePieceOneMemIndx))
+
+                if self._is_edge_piece_in_right_place(edgePiece):
+                    print "The edge piece is in the right edge! Whoops!!"
+                    print "\n"
+                    break
+
+                # the edge piece is on the second layer, and the piece is in the right edge but in revised locations
+                if edgePiece[0].get_pos()[1] == 4 and edgePiece[1].get_pos()[1]== 4 and \
+                    self.cube.get_center_piece_by_edge_piece(edgePiece[0]).get_color() == self.cube.get_piece_by_num(edgePiece[1].get_num()).get_color():
+
+                    if debugML:
+                        print "The piece is in the right edge on the second layer, however it is in revised order."
                         print "\n"
-                        print "!"*32
-                        print "Program flies in _mid_layer function!!"
-                        print "!" * 32
-                        print "\n"
-                        break
+
+                    if self._is_on_right(edgePiece[0],edgePiece[1]): #edgePiece1 is on the right hand of piece2
+                        rF = self.cube.get_face_location_by_piece(self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[0]))
                     else:
-                        self._manipulation('D',1)
-
-                if debugML:
-                    print "The mid layer edge piece has been moved to right place."
-                    print self.cube
-                    print "\n"
-                #the edge piece is in the right place, then perform formula to this edge piece
-                #add code here!
-                currFCP = self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[0])
-                neighborFCP = self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[1])
-                cf = self.cube.get_face_location_by_piece(currFCP)
-                cf_prime = cf+"'"
-                nf = self.cube.get_face_location_by_piece(neighborFCP)
-                nf_prime = nf+"'"
-                if self._is_on_right( currFCP,neighborFCP): # neighborFCP is on the right hand of curFCP
-                    self._manipulation("D'",1)
-                    self._manipulation(nf_prime,1)
+                        rF = self.cube.get_face_location_by_piece(self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[1]))
+                    rF_prime = rF + "'"
+                    self._manipulation(rF_prime,1)
                     self._manipulation("D",1)
-                    self._manipulation(nf,1)
+                    self._manipulation(rF,1)
+                    self._manipulation("D'",1)
+                    self._manipulation("F",1)
+                    self._manipulation("D'",2)
+                    self._manipulation("F'",1)
+                    self._manipulation("D'",1)
+                    self._manipulation("F",1)
+                    self._manipulation("D'",2)
+                    self._manipulation("F'",1)
 
+
+
+                    if debugML:
+                        print self.cube
+                    continue
+                # the edge piece is not in the right edge, has to be moved to right place on bottom first
+                if edgePiece[0].get_pos()[1]==4 and edgePiece[1].get_pos()[1]==4 and \
+                    self.cube.get_center_piece_by_edge_piece(edgePiece[0]).get_color() != self.cube.get_piece_by_num(edgePiece[0].get_num()).get_color() and \
+                    self.cube.get_center_piece_by_edge_piece(edgePiece[1]).get_color() != self.cube.get_peice_by_num(edgePiece[0].get_num()).get_color():
+                    leftPiece = self._get_edge_piece_member_on_left(edgePiece)
+                    rightPiece = None
+                    for piece in edgePiece:
+                        if piece.get_num() != leftPiece.get_num():
+                            rightPiece = piece
+                            break
+                    left = self.cube.get_face_location_by_piece(leftPiece)
+                    left_prime = left+"'"
+                    f = self.cube.get_face_location_by_piece(rightPiece)
+                    f_prime = f+"'"
                     self._manipulation("D",1)
-                    self._manipulation(cf,1)
+                    self._manipulation(left,1)
                     self._manipulation("D'",1)
-                    self._manipulation(cf_prime,1)
-                else:
-                    self._manipulation("D", 1)
-                    self._manipulation(nf,1)
+                    self._manipulation(left_prime,1)
                     self._manipulation("D'",1)
-                    self._manipulation(nf_prime,1)
-
-                    self._manipulation("D'",1)
-                    self._manipulation(cf_prime,1)
+                    self._manipulation(f_prime,1)
                     self._manipulation("D",1)
-                    self._manipulation(cf,1)
+                    self._manipulation(f,1)
 
-                if debugML:
-                    print self.cube
+                    continue
 
+                # the edge piece is on the bottom layer
+                if edgePiece[0].get_color() != self.cube.get_piece_by_location((4,7)).get_color() and \
+                        edgePiece[1].get_color() != self.cube.get_piece_by_location((4,7)).get_color():
+                    # rotate the edge piece to the right face whose center piece is in the same
+                    # color with the edge piece
+                    bottomEdgePieceIndex = edgePiece[0].get_num()
 
-#
-# ---> form a cross on the last layer
+                    loop = 0
+                    while(True):
+                        loop +=1
+                        if edgePiece[0].get_color() == \
+                                self.cube.get_center_piece_by_edge_piece(self.cube.get_piece_by_num(bottomEdgePieceIndex)).get_color():
+                            break
+                        if loop >6:
+                            print "\n"
+                            print "!"*32
+                            print "Program flies in _mid_layer function!!"
+                            print "!" * 32
+                            print "\n"
+                            break
+                        else:
+                            self._manipulation('D',1)
 
+                    if debugML:
+                        print "The mid layer edge piece has been moved to right place on bottom."
+                        print self.cube
+                        print "\n"
+
+                    # update the edge piece that is being worked on
+                    edgePiece = self.cube.get_edge_piece_by_one_piece_member(self.cube.get_piece_by_num(edgePieceOneMemIndx))
+
+                    #the edge piece is in the right place on bottom, then perform formula to this edge piece
+                    #so that the edge piece can be moved to its right edge location
+                    currFCP = self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[0])
+                    neighborFCP = self.cube.get_center_piece_of_face_one_piece_should_be(edgePiece[1])
+                    cf = self.cube.get_face_location_by_piece(currFCP)
+                    cf_prime = cf+"'"
+                    nf = self.cube.get_face_location_by_piece(neighborFCP)
+                    nf_prime = nf+"'"
+                    if self._is_on_right( currFCP,neighborFCP): # neighborFCP is on the right hand of curFCP
+                        self._manipulation("D'",1)
+                        self._manipulation(nf_prime,1)
+                        self._manipulation("D",1)
+                        self._manipulation(nf,1)
+
+                        self._manipulation("D",1)
+                        self._manipulation(cf,1)
+                        self._manipulation("D'",1)
+                        self._manipulation(cf_prime,1)
+                    else:
+                        self._manipulation("D", 1)
+                        self._manipulation(nf,1)
+                        self._manipulation("D'",1)
+                        self._manipulation(nf_prime,1)
+
+                        self._manipulation("D'",1)
+                        self._manipulation(cf_prime,1)
+                        self._manipulation("D",1)
+                        self._manipulation(cf,1)
+
+                    if debugML:
+                        print self.cube
+                    continue
 
 
 #---> solve the last layer cross
